@@ -1,0 +1,16 @@
+{% load i18n %}
+
+{% if show %}
+<div class="dropdown xfull">
+    <button class="btn btn-info dropdown-toggle" type="button" id="date-hierarchy" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        {% trans 'Date Hierarchy' %}
+        <span class="caret"></span>
+    </button>
+    <div class="list-group dropdown-menu toplinks" aria-labelledby="date-hierarchy">
+    {% if back %}<a class="list-group-item date-back" href="{{ back.link }}">&lsaquo; {{ back.title }}</a>{% endif %}
+    {% for choice in choices %}
+     {% if choice.link %}<a class="list-group-item" href="{{ choice.link }}">{% endif %}{{ choice.title }}{% if choice.link %}</a>{% endif %}
+    {% endfor %}
+    </div>
+</div>
+{% endif %}

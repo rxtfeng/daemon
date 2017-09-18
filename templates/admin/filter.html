@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<select class="form-control">
+    {% for choice in choices %}
+    {% if forloop.first %}
+    <option value="" data-url="{{ choice.query_string|iriencode }}">{{ title|capfirst }}</option>
+    <option value="" data-url="">---------</option>
+    {% else %}
+    <option value="{{ choice.display|lower }}" {{ choice.selected|yesno:' selected="slected",' }} data-url="{{ choice.query_string|iriencode }}">{% if choice.selected %}{{ title|capfirst }}: {% endif %}{{ choice.display }}</option>
+    {% endif %}
+    {% endfor %}
+</select>

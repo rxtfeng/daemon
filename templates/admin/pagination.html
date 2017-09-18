@@ -1,0 +1,23 @@
+{% load admin_list %}
+{% load i18n %}
+
+<div class="paginator">
+    {% if pagination_required %}
+    <ul class="pagination">
+        {% for i in page_range %}
+        {% if i == "." %}
+            <li><span>{% paginator_number cl i %}</span></li>
+        {% else %}
+            <li>{% paginator_number cl i %}</li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="pull-right text-info">
+        {{ cl.result_count }} {% if cl.result_count == 1 %}{{ cl.opts.verbose_name }}{% else %}{{ cl.opts.verbose_name_plural }}{% endif %}
+        {% if show_all_url %}&nbsp;&nbsp;<a href="{{ show_all_url }}" class="btn btn-default showall">{% trans 'Show all' %}</a>{% endif %}
+        {% if cl.formset and cl.result_count %}&nbsp;&nbsp;
+        <input type="submit" name="_save" class="btn btn-default" value="{% trans 'Save' %}"/>
+        {% endif %}
+    </p>
+</div>

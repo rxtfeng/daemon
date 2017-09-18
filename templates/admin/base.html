@@ -1,0 +1,238 @@
+{% load i18n static daemon %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/bootstrap.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/todc-bootstrap.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/jquery.scrollbar.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/font-awesome.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/select2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/animate.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/style.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/form.css" %}"/>
+    {% if LANGUAGE_BIDI %}
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/bootstrap-rtl.min.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "daemon/css/bootstrap-flipped.min.css" %}"/>
+    {% endif %}
+    {% block extrastyle %}{% endblock %}
+
+    <script type="text/javascript" src="{% static "daemon/js/jquery.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/jquery-migrate.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/bootstrap.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/jquery.scrollbar.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/jquery-scrollLock.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/jquery.cookie.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/select2.js" %}"></script>
+    <script type="text/javascript" src="{% static "daemon/js/app.js" %}"></script>
+
+    {% block extrahead %}{% endblock %}
+
+    {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+</head>
+{% load i18n %}
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" data-admin-utc-offset="{% now "Z" %}">
+
+    <div class="page-loader">
+        <div class="page-loader-spinner">
+            <svg viewBox="25 25 50 50">
+                <circle cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"></circle>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div id="container">
+
+        {% if not is_popup %}
+        <!-- Header -->
+        {% block header %}
+        <header id="header" class="header">
+            <nav class="navbar navbar-masthead navbar-default navbar-fixed-top">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <div class="navigation-trigger visible-xs-block" data-action="aside-open" data-target="#sidebar">
+                            <div class="navigation-trigger-inner">
+                                <i class="navigation-trigger-line"></i>
+                                <i class="navigation-trigger-line"></i>
+                                <i class="navigation-trigger-line"></i>
+                            </div>
+                        </div>
+                        <div id="branding">
+                            {% block branding %}{% endblock %}
+                        </div>
+                    </div>
+                    <div class="navbar-right hidden-xs navbar-body">
+                        <ul class="nav navbar-nav">
+                            {% block usertools %}
+                            {% if has_permission %}
+                            <li class="dropdown">
+                                {% block welcome-msg %}
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Welcome,' %} <strong>{% firstof user.get_short_name user.get_username %}</strong> <span class="caret"></span></a>
+                                {% endblock %}
+                                {% block userlinks %}
+                                <ul class="dropdown-menu dropdown-menu-right">
+                                    {% if site_url %}
+                                    <li><a href="{{ site_url }}">{% trans 'View site' %}</a></li>
+                                    {% endif %}
+                                    {% if user.is_active and user.is_staff %}
+                                        {% url 'django-admindocs-docroot' as docsroot %}
+                                        {% if docsroot %}
+                                        <li><a href="{{ docsroot }}">{% trans 'Documentation' %}</a></li>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if user.has_usable_password %}
+                                    <li><a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a></li>
+                                    {% endif %}
+                                    <li><a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a></li>
+                                </ul>
+                                {% endblock %}
+                            </li>
+                            {% endif %}
+                            {% endblock %}
+
+                            {% block navbar-logs %}
+                            {% if has_permission %}
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans 'Recent Actions' %} <b class="caret"></b></a>
+                                {% load log %}
+                                {% get_admin_log 10 as admin_log for_user user %}
+                                <ul class="dropdown-menu dropdown-menu-right">
+                                    {% for entry in admin_log %}
+                                    <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                                        <a href="{% if entry.is_deletion or not entry.get_admin_url %}#{% else %}{{ entry.get_admin_url }}{% endif %}">
+                                            <i class="glyphicon glyphicon-{% if entry.is_addition %}plus{% endif %}{% if entry.is_change %}edit{% endif %}{% if entry.is_deletion %}remove{% endif %}"></i>
+                                            {{ entry.object_repr }}
+                                            {% if entry.content_type %}
+                                            <span class="mini quiet">({% filter capfirst %}{{ entry.content_type }}{% endfilter %})</span>
+                                            {% else %}
+                                            <span class="mini quiet">({% trans 'Unknown content' %})</span>
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                    {% empty %}
+                                    <li class="disabled"><a href="#">{% trans 'None available' %}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                            {% endif %}
+                            {% endblock %}
+                            {% block nav-global %}{% endblock %}
+                            <li><a id="sidebar-toggle" class="{% if request.COOKIES.sidebar_toggled == 'true' %}sidebar-toggled{% endif %}" href="#"><i class="fa fa-thumb-tack" aria-hidden="true"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        {% endblock %}
+        <!-- END Header -->
+
+        <!-- Sidebar -->
+        {% block sidebar %}
+        <aside id="sidebar" class="sidebar {% if request.COOKIES.sidebar_toggled == 'true' %}sidebar-toggled{% endif %}">
+            <div class="scrollbar-inner">
+                <div class="user">
+                    <div class="user-info" data-toggle="collapse" data-target="#collapse-user">
+                        <img src="{% static "daemon/img/avatar.png" %}" alt="" class="user-avatar img-circle">
+                        <div>
+                            <div class="user-name">{% filter force_escape %}{% firstof user.get_short_name user.get_username %}{% endfilter %}</div>
+                            <div class="user-email">{% filter force_escape %}{{ user.email }}{% endfilter %}</div>
+                        </div>
+                    </div>
+                    {% if has_permission %}
+                    <ul class="list-group collapse" id="collapse-user">
+                        {% if site_url %}
+                            <li class="list-group-item"><a href="{{ site_url }}"><i class="fa fa-eye" aria-hidden="true"></i>{% trans 'View site' %}</a></li>
+                        {% endif %}
+                        {% if user.is_active and user.is_staff %}
+                            {% url 'django-admindocs-docroot' as docsroot %}
+                            {% if docsroot %}
+                                <li class="list-group-item"><a href="{{ docsroot }}"><i class="fa fa-book" aria-hidden="true"></i>{% trans 'Documentation' %}</a></li>
+                            {% endif %}
+                        {% endif %}
+                        {% if user.has_usable_password %}
+                        <li class="list-group-item"><a href="{% url 'admin:password_change' %}"><i class="fa fa-user-circle-o" aria-hidden="true"></i>{% trans 'Change password' %}</a></li>
+                        {% endif %}
+                        <li class="list-group-item"><a href="{% url 'admin:logout' %}"><i class="fa fa-sign-out" aria-hidden="true"></i>{% trans 'Log out' %}</a></li>
+                    </ul>
+                    {% endif %}
+                </div>
+                <ul class="list-group">
+                    {% url 'admin:index' as home %}
+                    <li class="list-group-item {% if request.path == home %}active{% endif %}"><a href="{{ home }}"><i class="fa fa-home" aria-hidden="true"></i>{% trans 'Home' %}</a></li>
+                    {% get_app_list as apps %}
+                    {% for app in apps %}
+                    <li class="list-group-item {% if app.is_selected %}active{% endif %}">
+                        <a href="#collapse-{{ app.app_label }}" data-toggle="collapse"><i class="fa fa-globe" aria-hidden="true"></i>{{ app.app_label|capfirst }}</a>
+                        <ul class="list-group collapse {% if app.is_selected %}in{% endif %}" id="collapse-{{ app.app_label }}">
+                            <li class="list-group-item"><a href="{{ app.app_url }}"><i class="fa fa-cube" aria-hidden="true"></i>{{ app.app_label|capfirst }}</a></li>
+                            {% for model in app.models %}
+                            <li class="list-group-item {% if model.is_selected %}active{% endif %}">
+                                {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}">{{ model.name|capfirst }}</a>
+                                {% else %}
+                                   {{ model.name|capfirst }}
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+        {% endblock %}
+        <!-- END Sidebar -->
+        {% endif %}
+
+        {% block main %}
+
+        <main id="main" class="main {% if request.COOKIES.sidebar_toggled == 'true' %}sidebar-toggled{% endif %}">
+            {% if not is_popup %}
+            {% block breadcrumbs %}
+            <div class="breadcrumbs">
+                <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+                {% if title %} &rsaquo; {{ title }}{% endif %}
+            </div>
+            {% endblock %}
+            {% endif %}
+
+
+            {% block messages %}
+            {% if messages %}
+            <ul class="messagelist">
+                {% for message in messages %}
+                <li class="alert alert-{{ message.tags|default:"info" }} alert-dismissible" role="alert">
+                    <button class="close" type="button" data-dismiss="alert" aria-label="Close"><span class="text-uppercase" aria-hidden="true">{% trans 'Close' %}</span></button>
+                    {{ message|capfirst }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endblock messages %}
+
+            <!-- Content -->
+            <div id="content" class="content">
+                {% block pretitle %}{% endblock %}
+                {% block content_title %}{% if title %}<h5 class="text-info bg-info">{{ title }}</h5>{% endif %}{% endblock %}
+                {% block content %}
+                {% block object-tools %}{% endblock %}
+                {{ content }}
+                {% endblock %}
+            </div>
+            <!-- END Content -->
+
+            {% block footer %}
+            <footer id="footer" class="footer">
+                <p>Copyright © 2017 Spongebob Admin. All Rights Reserved.</p>
+            </footer>
+            {% endblock %}
+        </main>
+        {% endblock %}
+    </div>
+    <!-- END Container -->
+
+</body>
+</html>

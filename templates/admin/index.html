@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">{% trans 'Dashboard' %}</div>
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+    <div class="row">
+        {% url 'admin:index' as home %}
+        {% for app in app_list %}
+        <div class="{% if request.path == home %}col-md-6{% else %}col-md-12{% endif %} col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title app-name"><a href="{{ app.app_url }}">{{ app.name }}</a></h4>
+                    <h4><small class="panel-subtitle">{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}</small></h4>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        {% for model in app.models %}
+                        <tr>
+                            <th scope="row">
+                                {% if model.admin_url %}
+                                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                {% else %}
+                                {{ model.name }}
+                                {% endif %}
+
+                                {% if model.add_url or model.admin_url %}
+                                <div class="pull-right">
+                                    {% if model.add_url %}
+                                    <a href="{{ model.add_url }}" class="btn btn-xs addlink"><span class="glyphicon glyphicon-plus"></span>{% trans 'Add' %}</a>
+                                    {% endif %}
+                                    {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}" class="btn btn-xs changelink"><span class="glyphicon glyphicon-edit"></span>{% trans 'Change' %}</a>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </th>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-md-12">
+            <p class="text-danger bg-danger">{% trans "You don't have permission to edit anything." %}</p>
+        </div>
+        {% endfor %}
+
+        {% block logs %}
+        {% load log %}
+        {% if user.is_superuser %}
+        {% get_admin_log 10 as admin_log for_user user %}
+        <div class="col-md-6 col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">{% trans 'Recent Actions' %}</h4>
+                    <h4><small class="panel-subtitle"></small></h4>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        {% for entry in admin_log %}
+                        <tr>
+                            <th scope="row" class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                                <a href="{% if entry.is_deletion or not entry.get_admin_url %}#{% else %}{{ entry.get_admin_url }}{% endif %}">
+                                    <i class="glyphicon glyphicon-{% if entry.is_addition %}plus{% endif %}{% if entry.is_change %}edit{% endif %}{% if entry.is_deletion %}remove{% endif %}"></i>
+                                    {{ entry.object_repr }}
+                                    {% if entry.content_type %}
+                                    <span class="mini quiet">({% filter capfirst %}{{ entry.content_type }}{% endfilter %})</span>
+                                    {% else %}
+                                    <span class="mini quiet">({% trans 'Unknown content' %})</span>
+                                    {% endif %}
+                                </a>
+                                <div class="pull-right">
+                                    <span style="margin-right:5px;" data-toggle="tooltip" data-placement="left" title="{{ entry.user }}"><i class="fa fa-user-o" aria-hidden="true"></i></span>
+                                    <span data-toggle="tooltip" data-placement="left" title="{{ entry.action_time }}"><i class="fa fa-clock-o" aria-hidden="true"></i></span>
+                                </div>
+                            </th>
+                            {% empty %}
+                            <th scope="row" class="disabled"><a href="#">{% trans 'None available' %}</a></li>
+                            {% endfor %}
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% load i18n static admin_list %}
+
+{% if cl.search_fields %}
+<div id="toolbar">
+    <form id="changelist-search" class="navbar-form navbar-left" role="search" method="get">
+        <div class="form-group">
+            <input type="text" class="form-control" size="25" placeholder="{% trans 'Search' %}" name="{{ search_var }}" value="{{ cl.query }}" id="searchbar" autofocus />
+        </div>
+        {% block filters %}
+        {% if cl.has_filters %}
+        <div id="changelist-filter">
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+        </div>
+        {% endif %}
+        {% endblock %}
+        <input type="submit" class="btn btn-default" value="{% trans 'Search' %}" />
+
+        {% if show_result_count %}
+        <span>{% blocktrans count counter=cl.result_count %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %} (<a href="?{% if cl.is_popup %}_popup=1{% endif %}">{% if cl.show_full_result_count %}{% blocktrans with full_result_count=cl.full_result_count %}{{ full_result_count }} total{% endblocktrans %}{% else %}{% trans "Show all" %}{% endif %}</a>)</span>
+        {% endif %}
+        {% for pair in cl.params.items %}
+        {% if pair.0 != search_var %}
+        <input type="hidden" name="{{ pair.0 }}" value="{{ pair.1 }}"/>
+        {% endif %}
+        {% endfor %}
+    </form>
+</div>
+{% endif %}
