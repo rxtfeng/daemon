@@ -9,7 +9,7 @@
     <div class="list-group dropdown-menu toplinks" aria-labelledby="date-hierarchy">
     {% if back %}<a class="list-group-item date-back" href="{{ back.link }}">&lsaquo; {{ back.title }}</a>{% endif %}
     {% for choice in choices %}
-     {% if choice.link %}<a class="list-group-item" href="{{ choice.link }}">{% endif %}{{ choice.title }}{% if choice.link %}</a>{% endif %}
+        <a class="list-group-item" {% if choice.link %}href="{{ choice.link }}"{% endif %}>{{ choice.title }}</a>
     {% endfor %}
     </div>
 </div>
