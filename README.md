@@ -13,7 +13,7 @@ Django == 1.10
 1. clone the master branch in your project directory
 
 ```shell
-$ git clone https://github.com/rxtfeng/daemon.git
+$ git clone https://github.com/rxtfeng/daemon
 ```
 
 2. add `daemon` in `INSTALL_APPS` before the `django.contrib.admin`
